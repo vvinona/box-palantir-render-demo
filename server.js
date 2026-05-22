@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import axios from "axios";
 
 dotenv.config();
 
@@ -19,35 +20,77 @@ app.get("/health", (req, res) => {
 
 app.post("/box-to-palantir", async (req, res) => {
   try {
+
     console.log("Incoming Box payload:");
     console.log(JSON.stringify(req.body, null, 2));
 
     const boxItemId = req.body.box_item_id || "unknown";
 
     const normalizedPayload = {
-      boxItemId,
-      boxItemName: req.body.box_item_name || "unknown",
       companyName: req.body.company_name || "Unknown",
-      constellationSize: req.body.constellation_size || "N/A",
-      geographicCoverage: req.body.geographic_coverage || "Unknown",
+      capabilityCategory: req.body.capability_category || "Unknown",
       orbitType: req.body.orbit_type || "Unknown",
+      geographicCoverage: req.body.geographic_coverage || "Unknown",
       dataLatency: req.body.data_latency || "Unknown",
       integrationMethod: req.body.integration_method || "Unknown",
-      capabilityCategory: req.body.capability_category || "Unknown",
-      boxUrl: `https://app.box.com/file/${boxItemId}`,
-      lastSyncedAt: new Date().toISOString(),
-      sourceSystem: "Box"
+      boxitemId: boxItemId,
+      boxUrl: `https://app.box.com/file/${boxItemId}`
     };
 
     console.log("Normalized Palantir payload:");
     console.log(JSON.stringify(normalizedPayload, null, 2));
 
-    return res.status(200).json({ ok: true });
+    console.log("Requesting Palantir token...");
 
-  } catch (error) {
-    console.error("Middleware error:", error);
+    const tokenResponse = await axios.post(
+      process.env.PALANTIR_TOKEN_URL,
+      new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: process.env.PALANTIR_CLIENT_ID,
+        client_secret: process.env.PALANTIR_CLIENT_SECRET
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    console.log("Palantir token acquired.");
+
+    const foundryResponse = await axios.post(
+      `${process.env.PALANTIR_BASE_URL}/api/v2/ontology/objects/CommercialSpaceCapability`,
+      normalizedPayload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("Foundry response:");
+    console.log(foundryResponse.data);
 
     return res.status(200).json({
+      ok: true,
+      foundry: foundryResponse.data
+    });
+
+  } catch (error) {
+
+    console.error("Middleware error:");
+
+    if (error.response) {
+      console.error(error.response.status);
+      console.error(error.response.data);
+    } else {
+      console.error(error.message);
+    }
+
+    return res.status(500).json({
       ok: false,
       message: error.message
     });
