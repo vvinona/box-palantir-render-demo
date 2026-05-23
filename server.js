@@ -96,7 +96,72 @@ app.post("/box-to-palantir", async (req, res) => {
     });
   }
 });
+app.get("/test-create-folder", async (req, res) => {
 
+  try {
+
+    const axios = (await import("axios")).default;
+
+    console.log("Creating Box folder...");
+
+    const tokenResponse = await axios.post(
+      "https://api.box.com/oauth2/token",
+      new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: process.env.BOX_CLIENT_ID,
+        client_secret: process.env.BOX_CLIENT_SECRET,
+        box_subject_type: "enterprise",
+        box_subject_id: process.env.BOX_ENTERPRISE_ID
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    console.log("Box token acquired.");
+
+    const folderResponse = await axios.post(
+      "https://api.box.com/2.0/folders",
+      {
+        name: `Mission-${Date.now()}`,
+        parent: {
+          id: process.env.BOX_PARENT_FOLDER_ID
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("Folder created:");
+    console.log(folderResponse.data);
+
+    return res.status(200).json(folderResponse.data);
+
+  } catch (error) {
+
+    console.error("Folder creation error:");
+
+    if (error.response) {
+      console.error(error.response.status);
+      console.error(error.response.data);
+    } else {
+      console.error(error.message);
+    }
+
+    return res.status(500).json({
+      ok: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
