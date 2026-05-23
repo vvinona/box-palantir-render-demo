@@ -96,13 +96,12 @@ app.post("/box-to-palantir", async (req, res) => {
     });
   }
 });
+
 app.get("/test-create-folder", async (req, res) => {
 
   try {
 
-    const axios = (await import("axios")).default;
-
-    console.log("Creating Box folder...");
+    console.log("Creating Box folder tree...");
 
     const tokenResponse = await axios.post(
       "https://api.box.com/oauth2/token",
@@ -124,10 +123,12 @@ app.get("/test-create-folder", async (req, res) => {
 
     console.log("Box token acquired.");
 
+    const missionName = `Mission-${Date.now()}`;
+
     const folderResponse = await axios.post(
       "https://api.box.com/2.0/folders",
       {
-        name: `Mission-${Date.now()}`,
+        name: missionName,
         parent: {
           id: process.env.BOX_PARENT_FOLDER_ID
         }
@@ -140,10 +141,48 @@ app.get("/test-create-folder", async (req, res) => {
       }
     );
 
-    console.log("Folder created:");
-    console.log(folderResponse.data);
+    const missionFolderId = folderResponse.data.id;
 
-    return res.status(200).json(folderResponse.data);
+    console.log(`Mission folder created: ${missionFolderId}`);
+
+    const subfolders = [
+      "Reports",
+      "Intelligence",
+      "Imagery",
+      "Communications",
+      "Briefings",
+      "AI Summaries"
+    ];
+
+    for (const subfolderName of subfolders) {
+
+      await axios.post(
+        "https://api.box.com/2.0/folders",
+        {
+          name: subfolderName,
+          parent: {
+            id: missionFolderId
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      console.log(`Created subfolder: ${subfolderName}`);
+    }
+
+    const folderUrl = `https://app.box.com/folder/${missionFolderId}`;
+
+    return res.status(200).json({
+      ok: true,
+      missionName,
+      missionFolderId,
+      folderUrl
+    });
 
   } catch (error) {
 
@@ -162,6 +201,7 @@ app.get("/test-create-folder", async (req, res) => {
     });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
