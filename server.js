@@ -190,6 +190,43 @@ app.get("/create-mission-folder", async (req, res) => {
       embedUrl
     });
 
+    console.log("Creating shared link...");
+
+    const sharedLinkResponse = await axios.put(
+      `https://api.box.com/2.0/folders/${missionFolderId}`,
+      {
+    shared_link: {
+      access: "open"
+    }
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  }
+);
+
+    const sharedLink =
+  sharedLinkResponse.data.shared_link.url;
+
+    console.log(`Shared link created: ${sharedLink}`);
+
+    const folderUrl = sharedLink;
+
+    const embedUrl =
+  sharedLink
+    .replace("/s/", "/embed/s/")
+    + "?sortColumn=date";
+
+    return res.status(200).json({
+  ok: true,
+  missionName,
+  missionFolderId,
+  folderUrl,
+  embedUrl
+});
+
   } catch (error) {
 
     console.error("Folder creation error:");
