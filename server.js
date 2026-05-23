@@ -97,7 +97,7 @@ app.post("/box-to-palantir", async (req, res) => {
   }
 });
 
-app.get("/test-create-folder", async (req, res) => {
+app.get("/create-mission-folder", async (req, res) => {
 
   try {
 
@@ -123,7 +123,8 @@ app.get("/test-create-folder", async (req, res) => {
 
     console.log("Box token acquired.");
 
-    const missionName = `Mission-${Date.now()}`;
+    const missionName =
+      req.query.missionName || `Mission-${Date.now()}`;
 
     const folderResponse = await axios.post(
       "https://api.box.com/2.0/folders",
