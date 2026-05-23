@@ -176,13 +176,18 @@ app.get("/create-mission-folder", async (req, res) => {
       console.log(`Created subfolder: ${subfolderName}`);
     }
 
-    const folderUrl = `https://app.box.com/folder/${missionFolderId}`;
+    const folderUrl =
+      `https://app.box.com/folder/${missionFolderId}`;
+
+    const embedUrl =
+      `https://app.box.com/embed/folder/0/f/${missionFolderId}`;
 
     return res.status(200).json({
       ok: true,
       missionName,
       missionFolderId,
-      folderUrl
+      folderUrl,
+      embedUrl
     });
 
   } catch (error) {
