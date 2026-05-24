@@ -3,10 +3,19 @@ import dotenv from "dotenv";
 import axios from "axios";
 import multer from "multer";
 import FormData from "form-data";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+app.use(cors({
+  origin: [
+    "https://tektite-containers.palantirfoundry.com",
+    "https://boxdemo.usw-16.palantirfoundry.com"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json({ limit: "10mb" }));
 
