@@ -272,6 +272,57 @@ app.get("/get-box-token", async (req, res) => {
     });
   }
 });
+app.get("/box-folder-items/:folderId", async (req, res) => {
+  try {
+    const { folderId } = req.params;
+
+    const tokenResponse = await axios.post(
+      "https://api.box.com/oauth2/token",
+      new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: process.env.BOX_CLIENT_ID,
+        client_secret: process.env.BOX_CLIENT_SECRET,
+        box_subject_type: "enterprise",
+        box_subject_id: process.env.BOX_ENTERPRISE_ID
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    const itemsResponse = await axios.get(
+      `https://api.box.com/2.0/folders/${folderId}/items`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          fields: "id,type,name,size,created_at,modified_at,shared_link"
+        }
+      }
+    );
+
+    const items = itemsResponse.data.entries.map((item) => ({
+      id: item.id,
+      type: item.type,
+      name: item.name,
+      size: item.size,
+      createdAt: item.created_at,
+      modifiedAt: item.modified_at,
+      boxUrl:
+        item.type === "folder"
+          ? `https://app.box.com/folder/${item.id}`
+          : `https://app.box.com/file/${item.id}`
+    }));
+
+    return res.status(200).json({ ok: true, folderId, items });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
