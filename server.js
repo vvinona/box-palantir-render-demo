@@ -119,7 +119,8 @@ const aiResponse = await axios.post(
     mode: "single_item_qa",
 
     prompt:
-      "You are a mission intelligence analyst. Summarize this uploaded mission document. Include key operational facts, risks/issues, mission relevance, and recommended follow-up actions. Keep the answer concise but professional.",
+      prompt:
+  "You are a military mission intelligence analyst updating an operational mission record in a command system. Produce a concise operational update in plain text only. Do not use markdown, bullet points, headers, asterisks, or special formatting characters. Do not ask follow-up questions. Start the response with 'Updated MM.DD.YYYY HH:MM:SS:' using the current timestamp format. Then provide a concise operational update including key mission developments, risks/issues, operational relevance, and recommended follow-up actions in 1-3 short paragraphs. Keep the response executive-style and concise.",
 
     items: [
       {
