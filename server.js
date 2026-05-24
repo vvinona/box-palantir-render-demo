@@ -82,15 +82,61 @@ app.post(
       );
 
       const uploadResponse = await axios.post(
-        "https://upload.box.com/api/2.0/files/content",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            ...formData.getHeaders(),
-          },
-        }
-      );
+  "https://upload.box.com/api/2.0/files/content",
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...formData.getHeaders(),
+    },
+  }
+);
+
+const uploadedFile = uploadResponse.data.entries[0];
+
+console.log("Uploaded file:", uploadedFile.id);
+
+const aiResponse = await axios.post(
+  "https://api.box.com/2.0/ai/ask",
+  {
+    mode: "single_item_qa",
+
+    prompt:
+      "You are a mission intelligence analyst. Summarize this uploaded mission document. Include key operational facts, risks/issues, mission relevance, and recommended follow-up actions. Keep the answer concise but professional.",
+
+    items: [
+      {
+        id: uploadedFile.id,
+        type: "file"
+      }
+    ],
+
+    include_citations: true,
+
+    ai_agent: {
+      type: "ai_agent_ask"
+    }
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  }
+);
+
+console.log("AI RESPONSE:");
+console.log(JSON.stringify(aiResponse.data, null, 2));
+
+const aiSummary =
+  aiResponse.data.answer ||
+  "No AI summary returned.";
+
+return res.status(200).json({
+  ok: true,
+  file: uploadedFile,
+  aiSummary
+});
 
       return res.status(200).json({
         ok: true,
