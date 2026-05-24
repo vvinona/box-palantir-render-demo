@@ -1,15 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
 import axios from "axios";
+import multer from "multer";
+import FormData from "form-data";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
-
-const multer = require("multer");
-const FormData = require("form-data");
 
 const upload = multer({
   storage: multer.memoryStorage(),
