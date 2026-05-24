@@ -95,6 +95,23 @@ app.post(
 const uploadedFile = uploadResponse.data.entries[0];
 
 console.log("Uploaded file:", uploadedFile.id);
+await new Promise((resolve) => setTimeout(resolve, 5000));
+
+const freshFileResponse = await axios.get(
+  `https://api.box.com/2.0/files/${uploadedFile.id}`,
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      fields: "id,name,type,etag,sha1,modified_at",
+    },
+  }
+);
+
+const freshFile = freshFileResponse.data;
+
+console.log("Fresh file retrieved:", freshFile.id);
 
 const aiResponse = await axios.post(
   "https://api.box.com/2.0/ai/ask",
@@ -106,7 +123,7 @@ const aiResponse = await axios.post(
 
     items: [
       {
-        id: uploadedFile.id,
+        id: freshFile.id,
         type: "file"
       }
     ],
