@@ -14,6 +14,10 @@ app.get("/", (req, res) => {
     res.status(200).send("Box to Palantir middleware is running.");
 });
 
+app.post("/upload-to-box/:folderId", upload.single("file"), async (req, res) => {
+  // uploads req.file to Box folderId
+});
+
 app.get("/health", (req, res) => {
     res.status(200).json({ ok: true });
 });
