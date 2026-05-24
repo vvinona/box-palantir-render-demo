@@ -8,11 +8,97 @@ const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 
+const multer = require("multer");
+const FormData = require("form-data");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
     res.status(200).send("Box to Palantir middleware is running.");
 });
+
+app.post(
+  "/upload-to-box/:folderId",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { folderId } = req.params;
+
+      if (!req.file) {
+        return res.status(400).json({
+          ok: false,
+          error: "No file uploaded",
+        });
+      }
+
+      const tokenResponse = await axios.post(
+        "https://api.box.com/oauth2/token",
+        new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: process.env.BOX_CLIENT_ID,
+          client_secret: process.env.BOX_CLIENT_SECRET,
+          box_subject_type: "enterprise",
+          box_subject_id: process.env.BOX_ENTERPRISE_ID,
+        }),
+        {
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      const accessToken =
+        tokenResponse.data.access_token;
+
+      const formData = new FormData();
+
+      formData.append(
+        "attributes",
+        JSON.stringify({
+          name: req.file.originalname,
+          parent: {
+            id: folderId,
+          },
+        })
+      );
+
+      formData.append(
+        "file",
+        req.file.buffer,
+        req.file.originalname
+      );
+
+      const uploadResponse = await axios.post(
+        "https://upload.box.com/api/2.0/files/content",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            ...formData.getHeaders(),
+          },
+        }
+      );
+
+      return res.status(200).json({
+        ok: true,
+        file: uploadResponse.data.entries[0],
+      });
+    } catch (error) {
+      console.error(error.response?.data || error);
+
+      return res.status(500).json({
+        ok: false,
+        error:
+          error.response?.data || error.message,
+      });
+    }
+  }
+);
 
 app.post("/upload-to-box/:folderId", upload.single("file"), async (req, res) => {
   // uploads req.file to Box folderId
