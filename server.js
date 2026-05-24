@@ -117,29 +117,24 @@ const aiResponse = await axios.post(
   "https://api.box.com/2.0/ai/ask",
   {
     mode: "single_item_qa",
-
     prompt:
-      prompt:
-  "You are a military mission intelligence analyst updating an operational mission record in a command system. Produce a concise operational update in plain text only. Do not use markdown, bullet points, headers, asterisks, or special formatting characters. Do not ask follow-up questions. Start the response with 'Updated MM.DD.YYYY HH:MM:SS:' using the current timestamp format. Then provide a concise operational update including key mission developments, risks/issues, operational relevance, and recommended follow-up actions in 1-3 short paragraphs. Keep the response executive-style and concise.",
-
+      "You are a military mission intelligence analyst updating an operational mission record in a command system. Produce a concise operational update in plain text only. Do not use markdown, bullet points, headers, asterisks, or special formatting characters. Do not ask follow-up questions. Start the response with 'Updated MM.DD.YYYY HH:MM:SS:' using the current timestamp format. Then provide a concise operational update including key mission developments, risks/issues, operational relevance, and recommended follow-up actions in 1-3 short paragraphs. Keep the response executive-style and concise.",
     items: [
       {
         id: freshFile.id,
-        type: "file"
-      }
+        type: "file",
+      },
     ],
-
     include_citations: true,
-
     ai_agent: {
-      type: "ai_agent_ask"
-    }
+      type: "ai_agent_ask",
+    },
   },
   {
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   }
 );
 
