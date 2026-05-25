@@ -113,19 +113,38 @@ const freshFile = freshFileResponse.data;
 
 console.log("Fresh file retrieved:", freshFile.id);
 
+const now = new Date();
+
+const timestamp =
+  String(now.getMonth() + 1).padStart(2, "0") +
+  "." +
+  String(now.getDate()).padStart(2, "0") +
+  "." +
+  now.getFullYear() +
+  " " +
+  String(now.getHours()).padStart(2, "0") +
+  ":" +
+  String(now.getMinutes()).padStart(2, "0") +
+  ":" +
+  String(now.getSeconds()).padStart(2, "0");
+
 const aiResponse = await axios.post(
   "https://api.box.com/2.0/ai/ask",
   {
     mode: "single_item_qa",
+
     prompt:
-      "You are a military mission intelligence analyst updating an operational mission record in a command system. Produce a concise operational update in plain text only. Do not use markdown, bullet points, headers, asterisks, or special formatting characters. Do not ask follow-up questions. Start the response with 'Updated MM.DD.YYYY HH:MM:SS:' using the current timestamp format. Then provide a concise operational update including key mission developments, risks/issues, operational relevance, and recommended follow-up actions in 1-3 short paragraphs. Keep the response executive-style and concise.",
+      `You are a military mission intelligence analyst updating an operational mission record in a command system. Produce a concise operational update in plain text only. Do not use markdown, bullet points, headers, asterisks, or special formatting characters. Do not ask follow-up questions. Start the response EXACTLY with: "Updated ${timestamp}:". Then provide a concise operational update including key mission developments, risks/issues, operational relevance, and recommended follow-up actions in 1-2 short paragraphs. Keep the response executive-style and concise.`,
+
     items: [
       {
         id: freshFile.id,
         type: "file",
       },
     ],
+
     include_citations: true,
+
     ai_agent: {
       type: "ai_agent_ask",
     },
