@@ -11,7 +11,7 @@ const app = express();
 app.use(cors({
   origin: [
     "https://tektite-containers.palantirfoundry.com",
-    "https://boxdemo.usw-16.palantirfoundry.com"
+    "https://boxdemo.usw-16.palantirfoundry.com",
     "https://mission-ops-center-7i2yvoflmhuxy3fs.apps.usw-16.palantirfoundry.com"
   ],
   methods: ["GET", "POST", "OPTIONS"],
